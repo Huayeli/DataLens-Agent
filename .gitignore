@@ -130,3 +130,8 @@ htmlcov/
 node_modules/
 
 npm-debug.log*
+
+# dataset
+data/*.csv
+data/*.xls
+data/*.xlsx
