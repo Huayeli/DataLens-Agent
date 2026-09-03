@@ -69,9 +69,7 @@ class SQLTool:
 
 
                         "data":
-                        df.to_dict(
-                            orient="records"
-                        ),
+                        self._to_json_records(df),
 
 
                         "sql":sql
@@ -122,6 +120,16 @@ class SQLTool:
 
 
 
+
+    # ==========================
+    # 查询结果转 JSON 安全记录（NaN/Inf 转为 null）
+    # ==========================
+    def _to_json_records(self, df):
+        df = df.replace([float("inf"), float("-inf")], None)
+        df = df.astype(object).where(pd.notnull(df), None)
+        return df.to_dict(
+            orient="records"
+        )
 
     # ==========================
     # CSV自动建表
@@ -287,13 +295,13 @@ class SQLTool:
 
 
         name=re.sub(
-            r"[^\w]",
+            r"[^a-z0-9]+",
             "_",
             name
         )
 
 
-        name=name.lower()
+        name=name.lower().strip("_")
 
 
         if name in [
@@ -427,3 +435,64 @@ class SQLTool:
 
 
         return result
+
+    # ==========================
+    # 获取表统计（行数/字段/预览）
+    # ==========================
+    def get_stats(self, table_name):
+        try:
+            with engine.connect() as conn:
+                count = conn.execute(
+                    text(f'SELECT COUNT(*) FROM "{table_name}"')
+                ).scalar()
+
+                inspector = inspect(engine)
+                cols = inspector.get_columns(table_name)
+
+                columns = [
+                    {"name": c["name"], "type": str(c["type"])}
+                    for c in cols
+                ]
+
+                keys = [c["name"] for c in cols]
+                preview = conn.execute(
+                    text(f'SELECT * FROM "{table_name}" LIMIT 20')
+                ).fetchall()
+
+                rows = [
+                    dict(zip(keys, row))
+                    for row in preview
+                ]
+
+                return {
+                    "success": True,
+                    "rows": count,
+                    "columns": columns,
+                    "preview": rows
+                }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+
+    # ==========================
+    # 删除数据表
+    # ==========================
+    def drop_table(self, table_name):
+        try:
+            with engine.connect() as conn:
+                conn.execute(
+                    text(f'DROP TABLE IF EXISTS "{table_name}"')
+                )
+                conn.commit()
+
+            return {"success": True}
+
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e)
+            }
