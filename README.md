@@ -2,7 +2,7 @@
 
 **对话式数据分析 Agent** —— 上传一份 CSV，用自然语言提问，自动生成 SQL、图表与结论。
 
-数镜（DataLens）是一款本地运行的智能数据分析工具。界面采用 designprompts.dev 的 **Academia** 风格（深色纸墨 + 黄铜点缀），前端基于 Vue 3，后端基于 FastAPI + SQLite，模型默认使用 DeepSeek（OpenAI 兼容接口）。
+数镜（DataLens）是一款本地运行的智能数据分析工具。界面采用深色纸墨与黄铜点缀的 Academia 学术风格，前端基于 Vue 3，后端基于 FastAPI + SQLite，模型默认使用 DeepSeek（OpenAI 兼容接口）。
 
 ---
 
@@ -31,35 +31,6 @@
 | 后端 | FastAPI · SQLAlchemy · pandas |
 | 数据库 | SQLite（默认 `data/datalens.db`，可用 `.env` 切换） |
 | 模型 | DeepSeek / 任意 OpenAI 兼容 API |
-
----
-
-## 目录结构
-
-```
-Datalens Agent/
-├── backend/
-│   ├── main.py                 # FastAPI 入口（API + 托管前端 dist）
-│   └── app/
-│       ├── config.py           # 环境变量与路径配置
-│       ├── database.py         # SQLAlchemy 引擎
-│       └── services/
-│           ├── sql_agent.py    # Agent 主流程（意图识别 / SQL / 记忆）
-│           ├── sql_tool.py     # SQL 执行、建表、统计
-│           ├── llm.py          # 大模型客户端
-│           ├── data_cleaner.py # 数据清洗
-│           ├── data_loader.py  # 读取 data/ 下的 CSV
-│           ├── field_mapper.py # 字段语义统一
-│           └── init_db.py      # 初始化数据库（导入 data/ 下 CSV）
-├── frontend/
-│   ├── src/                    # Vue 3 源码
-│   └── dist/                   # 生产构建产物（由后端托管）
-├── data/                       # SQLite 数据库 + 可导入的 CSV
-├── uploads/                    # 网页上传的 CSV 落盘目录
-├── requirements.txt
-├── start-all.ps1               # Windows 一键启动脚本
-└── .env.example                # 环境变量模板
-```
 
 ---
 
@@ -196,7 +167,3 @@ npm run dev
 - **回答与数据不符 / 图表为空**：检查 `DEEPSEEK_API_KEY` 是否有效（设置页可改并测试保存）。
 - **前端修改不生效**：改的是 `frontend/src`，需要 `npm run build`（生产模式）或在开发模式下访问 `5173` 端口。
 - **端口被占用**：确认 8000 / 5173 无残留进程后重启，或修改 `.env` 的 `PORT` / `frontend/vite.config.js`。
-
----
-
-*界面风格参考：[designprompts.dev/academia](https://designprompts.dev/academia)*
